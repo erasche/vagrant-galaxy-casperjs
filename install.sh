@@ -11,6 +11,7 @@ cd galaxy
 # Don't care that it exits one
 result=$(sh run.sh --stop-daemon)
 cp /vagrant/*.ini /home/vagrant/galaxy/
+cp /vagrant/*.xml /home/vagrant/galaxy/
 apt-get install -y uwsgi uwsgi-plugin-python supervisor nginx python-virtualenv
 sudo update-rc.d -f uwsgi remove
 if [ ! -d "/home/vagrant/venv" ];
@@ -19,6 +20,7 @@ then
 fi
 chown vagrant: -R /home/vagrant/
 
+cp /vagrant/index.html /usr/share/nginx/html/index.html
 cp /vagrant/nginx.conf /etc/nginx/sites-enabled/default
 cp /vagrant/supervisor.conf /etc/supervisor/conf.d/galaxy.conf
 service nginx restart
