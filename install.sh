@@ -10,8 +10,7 @@ fi
 cd galaxy
 # Don't care that it exits one
 result=$(sh run.sh --stop-daemon)
-cp /vagrant/*.ini /home/vagrant/galaxy/
-cp /vagrant/*.xml /home/vagrant/galaxy/
+cp /vagrant/galaxy/* /home/vagrant/galaxy/
 apt-get install -y uwsgi uwsgi-plugin-python supervisor nginx python-virtualenv
 sudo update-rc.d -f uwsgi remove
 if [ ! -d "/home/vagrant/venv" ];
