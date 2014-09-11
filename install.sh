@@ -19,7 +19,7 @@ cd /home/vagrant/
 if [ ! -d "galaxy" ];
 then
     tar xvfz /tmp/latest_2014.08.11.tar.gz
-    mv galaxy-galaxy-dist-0047ee06fef0 galaxy
+    mv galaxy-galaxy-dist-* galaxy
     chown vagrant: -R /home/vagrant/galaxy/
 fi
 cd galaxy
