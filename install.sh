@@ -12,7 +12,6 @@ apt-get update
 apt-get -y install nodejs
 sudo npm install -g phantomjs casperjs
 
-
 ## GALAXY
 wget --no-clobber https://bitbucket.org/galaxy/galaxy-dist/get/latest_2014.08.11.tar.gz -O /tmp/latest_2014.08.11.tar.gz
 cd /home/vagrant/
@@ -26,6 +25,9 @@ cd galaxy
 # Don't care that it exits one
 result=$(sh run.sh --stop-daemon)
 cp /vagrant/galaxy/* /home/vagrant/galaxy/
+
+# Create user
+python create_galaxy_user.py --user admin@local.host --password password
 
 ## UWSGI + Nginx
 apt-get install -y uwsgi uwsgi-plugin-python supervisor nginx python-virtualenv
