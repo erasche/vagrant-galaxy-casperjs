@@ -1,3 +1,4 @@
+# FROM https://github.com/bgruening/docker-galaxy-stable/blob/master/galaxy/create_galaxy_user.py
 from scripts.db_shell import *
 from galaxy.util.bunch import Bunch
 from galaxy.security import GalaxyRBACAgent
