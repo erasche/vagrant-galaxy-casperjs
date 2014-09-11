@@ -40,8 +40,8 @@ chown vagrant: -R /home/vagrant/
 
 # Static Files
 cp /vagrant/index.html /usr/share/nginx/html/index.html
-cp /vagrant/nginx.conf /etc/nginx/sites-enabled/default
-cp /vagrant/supervisor.conf /etc/supervisor/conf.d/galaxy.conf
+cp /vagrant/conf/nginx.conf /etc/nginx/sites-enabled/default
+cp /vagrant/conf/supervisor.conf /etc/supervisor/conf.d/galaxy.conf
 service nginx restart
 
 # Make sure everything is supervised
