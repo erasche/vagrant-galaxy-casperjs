@@ -1,3 +1,7 @@
+var viz_name = "ipython";
+var height = 720;
+var width = 1280;
+
 var casper = require('casper').create({
     verbose: true,
     logLevel: "debug",
@@ -15,6 +19,7 @@ var casper = require('casper').create({
 picture_index = 0;
 function screenshot(object){
     var pic_name = picture_index + ".png";
+    console.debug("Generated Screenshot: " + pic_name);
     object.capture(pic_name);
     picture_index++;
 }
@@ -119,14 +124,7 @@ casper.thenOpen('http://localhost/galaxy/', function(){
 
 // Load upload tool
 casper.thenOpen('http://localhost/galaxy/tool_runner?tool_id=upload1', function(){
-    /*
-    this.click('a.upload1');
-    this.wait(1000, function(){
-        this.capture('04.png');
-    });
-    this.page.switchToChildFrame('galaxy_main');
-    */
-    screenshot(this);
+    // Switching to child frames is tough, lets just do in a new window
     this.fillSelectors('form#tool_form', {
         'textarea[name="files_0|url_paste"]': '#A B\n1 2\n3 4',
         'input[name="files_0|space_to_tab"]': true
@@ -134,17 +132,59 @@ casper.thenOpen('http://localhost/galaxy/tool_runner?tool_id=upload1', function(
     screenshot(this);
     this.click('input[name="runtool_btn"]');
     this.wait(2000, function(){
-        console.log("File created?");
-        //screenshot(this);
+        console.log("Waiting for upload tool to complete");
     });
 });
 
 casper.thenOpen('http://localhost/galaxy', function(){
-    this.wait(2000, function(){
-        console.log("File created?");
-        screenshot(this);
+    // Wait for dataset processing to happen. Can take a few seconds. This will
+    // be *very* unpleasant on heavily loaded VM host and may require
+    // overriding waitForSelector to have a longer timeout.
+    this.wait(5000, function(){
+            screenshot(this);
+    });
+    // Make doubly sure that it's there. Timeout is 1-5 seconds I think.
+    this.waitForSelector('div.dataset.state-ok', function(){
+        // Wait for fade in animation to complete
+        this.wait(500, function(){
+                screenshot(this);
+        });
     });
 });
+
+ie_url = '';
+casper.then(function(){
+    var dataset_id = this.evaluate(function(){
+        var element = $("#current-history-panel div.dataset");
+        // hda-a7810ee58d3f4666
+        return element.attr('id').substring(4);
+    });
+    ie_url = "http://localhost/galaxy/visualization/show/" + viz_name + "?dataset_id=" + dataset_id;
+    // http://f.q.d.n/galaxy/visualization/show/ipython?dataset_id=a7810ee58d3f4666
+
+
+    casper.thenOpen(ie_url, function(){
+
+        console.log(this.getCurrentUrl()); 
+        this.wait(1000, function(){
+            screenshot(this);
+        });
+        console.log(this.getCurrentUrl()); 
+    });
+
+
+    casper.then(function(){
+        console.log(this.getCurrentUrl()); 
+        for(var i=0; i < 20; i++){
+            this.wait(1000, function(){
+                screenshot(this);
+            });
+        }
+    });
+
+
+});
+
 
 
 
