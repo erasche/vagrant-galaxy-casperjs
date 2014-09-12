@@ -1,6 +1,6 @@
 var viz_name = "ipython";
-var height = 720;
-var width = 1280;
+var height = 768;
+var width = 1366;
 
 // Internal variables
 _picture_index = 0;
@@ -11,24 +11,18 @@ var casper = require('casper').create({
     pageSettings: {
         loadImages: true,
         localToRemoteUrlAccessEnabled: true,
-        viewportSize: {
-            width: width,
-            height: height
-        },
+        viewportSize: {width: width, height: height},
     },
 });
 
 // Convenience function for storing screenshots
 function screenshot(object){
-    var pic_name = _picture_index + ".png";
-    console.debug("Generated Screenshot: " + pic_name);
-    object.capture(pic_name, {
-        top: 0,
-        left: 0,
-        width: width,
-        height: height
+    object.then(function(){
+        var pic_name = _picture_index + ".png";
+        casper.log("Generated Screenshot: " + pic_name, "info");
+        object.capture(pic_name);
+        _picture_index++;
     });
-    _picture_index++;
 }
 
 function galaxy_login(username, password){
@@ -39,7 +33,7 @@ function galaxy_login(username, password){
         // After loading the login page, save it
         screenshot(this);
         // Print our cookies
-        this.echo(JSON.stringify(phantom.cookies));
+        casper.log(JSON.stringify(phantom.cookies), "debug");
     });
 
     casper.wait(2000, function(){
@@ -49,11 +43,11 @@ function galaxy_login(username, password){
             'input[name="password"]': password
         });
         screenshot(this);
-        console.log("Logging In...");
+        casper.log("Logging In...", "info");
         this.click('input[name="login_button"]');
         this.wait(2000, function(){
-            console.log("Did we log ourselves in?");
-            this.echo("Post-login cookies: " + JSON.stringify(phantom.cookies));
+            casper.log("Did we log ourselves in?", "info");
+            casper.log("Post-login cookies: " + JSON.stringify(phantom.cookies), "debug");
             screenshot(this);
         });
 
@@ -64,9 +58,9 @@ function load_main_page(){
     // Doesn't just load main page...also deletes existing datasets! (well...it tries to)
     casper.thenOpen('http://localhost/galaxy/', function(){
         // Delete all old history items
-        this.echo("Removing old datasets");
+        casper.log("Removing old datasets", "info");
         this.wait(2000, function(){
-            this.echo("Hopefully history has loaded...");
+            casper.log("Hopefully history has loaded...", "info");
             this.evaluate(function(){
                 $( "a.dataset-delete" ).each(function() {
                     $( this ).click();
@@ -89,7 +83,7 @@ function create_dataset_from_text(dataset){
         screenshot(this);
         this.click('input[name="runtool_btn"]');
         this.wait(2000, function(){
-            console.log("Waiting for upload tool to complete");
+            casper.log("Waiting for upload tool to complete", "info");
         });
     });
     
@@ -110,39 +104,38 @@ function create_dataset_from_text(dataset){
     });
 }
 
+// Prints headers for all communication. Easier than using tcpdump.
 var superDebug = false;
 if(superDebug){
     casper.options.onResourceRequested = function(C, requestData, request) {
-        console.log("======= RD ========");
+        casper.log("======= RD ========", "debug");
         ["method", "url"].map(function(item){
-            console.log(item + ": "+ response[item]);
+            casper.log(item + ": "+ response[item], "debug");
         });
-        console.log("Headers");
+        casper.log("Headers", "debug");
         for(var i in requestData.headers){
-            console.log(requestData.headers[i]['name'] +": "+ requestData.headers[i]['value']);
+            casper.log(requestData.headers[i]['name'] +": "+ requestData.headers[i]['value'], "debug");
         }
-        console.log("\n\n");
     };
     casper.options.onResourceReceived = function(C, response) {
-        console.log("======= R ========");
+        casper.log("======= R ========", "debug");
         ["contentType", "redirectURL", "status", "statusText", "url"].map(function(item){
-            console.log(item + ": "+ response[item]);
+            casper.log(item + ": "+ response[item], "debug");
         });
-        console.log("Headers");
+        casper.log("Headers", "debug");
         for(var i in response.headers){
-            console.log(response.headers[i]['name'] +": "+ response.headers[i]['value']);
+            casper.log(response.headers[i]['name'] +": "+ response.headers[i]['value'], "debug");
         }
-        console.log("\n\n");
     };
 }
 // print out all the messages in the headless browser context
 casper.on('remote.message', function(msg) {
-    this.echo('remote message caught: ' + msg);
+    casper.log('remote message caught: ' + msg, "info");
 });
 
     // print out all the messages in the headless browser context
 casper.on("page.error", function(msg, trace) {
-    this.echo("Page Error: " + msg, "ERROR");
+    casper.log("Page Error: " + msg, "ERROR", 'error');
 });
 
 galaxy_login('admin@local.host', 'password');
@@ -163,17 +156,17 @@ casper.then(function(){
 
     // Open, screenshot while loading
     casper.thenOpen(ie_url, function(){
-        console.log(this.getCurrentUrl()); 
+        casper.log(this.getCurrentUrl(), "debug"); 
         this.wait(1000, function(){
             screenshot(this);
         });
-        console.log(this.getCurrentUrl()); 
+        casper.log(this.getCurrentUrl(), "debug"); 
     });
 
 
     //Take some screenshots during loading.
     casper.then(function(){
-        console.log(this.getCurrentUrl()); 
+        casper.log(this.getCurrentUrl(), "debug"); 
         for(var i=0; i < 10; i++){
             this.wait(1000, function(){
                 screenshot(this);
