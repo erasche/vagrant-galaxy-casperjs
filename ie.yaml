@@ -1,0 +1,11 @@
+---
+name: IPython
+docker_image_repository: https://github.com/bgruening/docker-ipython-notebook
+viz_plugin_repository: https://github.com/bgruening/galaxy-ipython
+conf:
+    conf_file_location: "config/ipython.conf"
+    test:
+        - main:
+             apache_urls: False
+             password_auth: False
+             ssl: False
