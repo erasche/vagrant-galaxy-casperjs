@@ -16,6 +16,7 @@ path = name.lower()
 # Handle docker image
 call(["git", "clone", docker_image, "/tmp/ie-docker-image"])
 os.chdir("/tmp/ie-docker-image")
+call(["sed", "-i", "s/ tornado / 'tornado<4' /g", "Dockerfile"])
 call(["docker.io", "build", '-t', 'ie', '.'])
 
 # Handle viz plugin
