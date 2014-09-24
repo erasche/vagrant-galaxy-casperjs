@@ -5,16 +5,6 @@ var width = 1366;
 // Internal variables
 _picture_index = 0;
 
-var casper = require('casper').create({
-    verbose: true,
-    logLevel: "debug",
-    pageSettings: {
-        loadImages: true,
-        localToRemoteUrlAccessEnabled: true,
-        viewportSize: {width: width, height: height},
-    },
-});
-
 // Convenience function for storing screenshots
 function screenshot(object){
     object.then(function(){
@@ -25,8 +15,9 @@ function screenshot(object){
     });
 }
 
-function galaxy_login(username, password){
+function galaxy_login(username, password, test){
     var login_url = 'http://localhost/galaxy/';
+    test.assertTitle("", "galaxy main title is correct");
     casper.start(login_url, function() {
         // Remove any existing galaxy cookie
         phantom.deleteCookie('galaxysession');
@@ -38,6 +29,9 @@ function galaxy_login(username, password){
 
     casper.wait(2000, function(){
         this.page.switchToChildFrame('galaxy_main');
+        test.assertExists('form#login', "Login form exists"); 
+        test.assertExists('input[name="email"]', "Email field available"); 
+        test.assertExists('input[name="password"]', "Password field available"); 
         this.fillSelectors('form#login', {
             'input[name="email"]': username,
             'input[name="password"]': password
@@ -47,6 +41,21 @@ function galaxy_login(username, password){
         this.click('input[name="login_button"]');
         this.wait(2000, function(){
             casper.log("Did we log ourselves in?", "info");
+
+            var available_cookies = phantom.cookies;
+            var known_good_cookie = {
+                "domain":"localhost",
+                "httponly":true,
+                "name":"galaxysession",
+                "path":"/galaxy",
+                "secure":false,
+            };
+            
+            for(var key in known_good_cookie){
+                var comp = (known_good_cookie[key] == available_cookies[0][key]);
+                test.assert(comp, "Cookie contains correct value for " + key);
+            }
+            test.assert(available_cookies[0]['value'].length == 80, "Key of right length");
             casper.log("Post-login cookies: " + JSON.stringify(phantom.cookies), "debug");
             screenshot(this);
         });
@@ -138,12 +147,32 @@ casper.on("page.error", function(msg, trace) {
     casper.log("Page Error: " + msg, "ERROR", 'error');
 });
 
-galaxy_login('admin@local.host', 'password');
-// Should probably actually have some asserts
-load_main_page();
-// Add a dataset. Will have a companion _from_file later.
-create_dataset_from_text('#A B\n1 2\n3 4');
+casper.test.begin('Galaxy Login', 10, function suite(test_suite){
+    casper.start("http://localhost/", function(){
+    });
+    galaxy_login('admin@local.host', 'password', test_suite);
 
+    casper.run(function(){
+        test_suite.done();
+    });
+});
+
+casper.test.begin("Dataset Creation", 1, function suite(test_suite){
+    casper.start("http://localhost/galaxy/", function(){
+    });
+    // Should probably actually have some asserts
+    load_main_page();
+    // Add a dataset. Will have a companion _from_file later.
+    create_dataset_from_text('#A B\n1 2\n3 4');
+    casper.run(function(){
+        test_suite.done();
+    });
+});
+
+casper.test.begin("Interactive Environment Tests", 1, function suite(test_suite){
+    casper.start("http://localhost/galaxy/", function(){
+    });
+/*
 ie_url = '';
 casper.then(function(){
     var dataset_id = this.evaluate(function(){
@@ -178,5 +207,8 @@ casper.then(function(){
 
 
 });
-
-casper.run();
+*/
+    casper.run(function(){
+        test_suite.done();
+    });
+});
