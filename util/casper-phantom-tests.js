@@ -81,9 +81,14 @@ function load_main_page(){
 
 }
 
-function create_dataset_from_text(dataset){
+function create_dataset_from_text(dataset, test){
     // Load upload tool
-    casper.thenOpen('http://localhost/galaxy/tool_runner?tool_id=upload1', function(){
+    casper.open('http://localhost/galaxy/tool_runner?tool_id=upload1', function(test){
+        test.assertHttpStatus(200);
+        test.assertUrlMatch(/tool_id=upload1/, "Correct page opened");
+        test.assertExists('form#tool_form', "Tool form exists"); 
+        test.assertExists('textarea[name="files_0|url_paste"]', "Textarea available"); 
+        test.assertExists('input[name="files_0|space_to_tab"]', "Spaces to tab available"); 
         // Switching to child frames is tough, lets just do in a new window
         this.fillSelectors('form#tool_form', {
             'textarea[name="files_0|url_paste"]': '#A B\n1 2\n3 4',
@@ -91,26 +96,21 @@ function create_dataset_from_text(dataset){
         });
         screenshot(this);
         this.click('input[name="runtool_btn"]');
-        this.wait(2000, function(){
-            casper.log("Waiting for upload tool to complete", "info");
-        });
-    });
+        //this.wait(2000, function(){
+        //    casper.log("Waiting for upload tool to complete", "info");
+        //});
+    }(test));
     
+    /*
     casper.thenOpen('http://localhost/galaxy', function(){
         // Wait for dataset processing to happen. Can take a few seconds. This will
         // be *very* unpleasant on heavily loaded VM host and may require
         // overriding waitForSelector to have a longer timeout.
-        this.wait(5000, function(){
-                screenshot(this);
-        });
-        // Make doubly sure that it's there. Timeout is 1-5 seconds I think.
-        this.waitForSelector('div.dataset.state-ok', function(){
-            // Wait for fade in animation to complete
-            this.wait(500, function(){
-                    screenshot(this);
-            });
+        this.wait(8000, function(){
+            screenshot(this);
         });
     });
+    */
 }
 
 // Prints headers for all communication. Easier than using tcpdump.
@@ -157,57 +157,66 @@ casper.test.begin('Galaxy Login', 10, function suite(test_suite){
     });
 });
 
-casper.test.begin("Dataset Creation", 1, function suite(test_suite){
-    casper.start("http://localhost/galaxy/", function(){
-    });
-    // Should probably actually have some asserts
-    load_main_page();
-    // Add a dataset. Will have a companion _from_file later.
-    create_dataset_from_text('#A B\n1 2\n3 4');
-    casper.run(function(){
-        test_suite.done();
-    });
-});
-
-casper.test.begin("Interactive Environment Tests", 1, function suite(test_suite){
-    casper.start("http://localhost/galaxy/", function(){
-    });
-/*
-ie_url = '';
-casper.then(function(){
-    var dataset_id = this.evaluate(function(){
-        var element = $("#current-history-panel div.dataset");
-        // hda-a7810ee58d3f4666
-        // Recently changed to
-        // dataset-7120d03ef1032efc
-        return element.attr('id').substring(8);
-    });
-    ie_url = "http://localhost/galaxy/visualization/show/" + viz_name + "?dataset_id=" + dataset_id;
-    // http://f.q.d.n/galaxy/visualization/show/ipython?dataset_id=a7810ee58d3f4666
-
-    // Open, screenshot while loading
-    casper.thenOpen(ie_url, function(){
-        casper.log(this.getCurrentUrl(), "debug"); 
-        this.wait(1000, function(){
-            screenshot(this);
-        });
-        casper.log(this.getCurrentUrl(), "debug"); 
-    });
-
-
-    //Take some screenshots during loading.
-    casper.then(function(){
-        casper.log(this.getCurrentUrl(), "debug"); 
-        for(var i=0; i < 10; i++){
-            this.wait(1000, function(){
-                screenshot(this);
+casper.test.begin("Dataset Creation", 5, function suite(test){
+    casper.start('http://localhost/galaxy/tool_runner?tool_id=upload1', function(){
+            test.assertHttpStatus(200);
+            test.assertUrlMatch(/tool_id=upload1/, "Correct page opened");
+            test.assertExists('form#tool_form', "Tool form exists"); 
+            test.assertExists('textarea[name="files_0|url_paste"]', "Textarea available"); 
+            test.assertExists('input[name="files_0|space_to_tab"]', "Spaces to tab available"); 
+            // Switching to child frames is tough, lets just do in a new window
+            this.fillSelectors('form#tool_form', {
+                'textarea[name="files_0|url_paste"]': '#A B\n1 2\n3 4',
+                'input[name="files_0|space_to_tab"]': true
             });
-        }
+            screenshot(this);
+            this.click('input[name="runtool_btn"]');
+            this.wait(5000, function(){
+                casper.log("Waiting for upload tool to complete", "info");
+            });
+    }).run(function(){
+        test.done();
     });
-
-
 });
-*/
+casper.test.begin("Interactive Environment Tests", 2, function suite(test_suite){
+    casper.start("http://localhost/galaxy/", function(){
+        this.wait(5000, function(){
+            casper.log("Waiting for upload tool to complete", "info");
+            var dataset_id = this.evaluate(function(){
+                var element = $("#current-history-panel div.dataset");
+                // hda-a7810ee58d3f4666
+                // Recently changed to
+                // dataset-7120d03ef1032efc
+                return element.attr('id').substring(8);
+            });
+            ie_url = "http://localhost/galaxy/visualization/show/" + viz_name + "?dataset_id=" + dataset_id;
+            test_suite.assert(dataset_id.length == 16, "Got a dataset ID");
+
+            casper.then(function(){
+                // http://f.q.d.n/galaxy/visualization/show/ipython?dataset_id=a7810ee58d3f4666
+                // Open, screenshot while loading
+                test_suite.assertUrlMatch(/dataset_id=/, "At correct URL?");
+                casper.thenOpen(ie_url, function(){
+                    this.wait(1000, function(){
+                        screenshot(this);
+                    });
+                });
+                //Take some screenshots during loading.
+                casper.then(function(){
+                    for(var i=0; i < 10; i++){
+                        this.wait(1000, function(){
+                            screenshot(this);
+                        });
+                    }
+                });
+
+                casper.then(function(){
+
+                });
+            });
+
+        });
+    });
     casper.run(function(){
         test_suite.done();
     });
