@@ -178,7 +178,7 @@ casper.test.begin("Dataset Creation", 5, function suite(test){
         test.done();
     });
 });
-casper.test.begin("Interactive Environment Tests", 2, function suite(test_suite){
+casper.test.begin("Interactive Environment Tests", 1, function suite(test_suite){
     casper.start("http://localhost/galaxy/", function(){
         this.wait(5000, function(){
             casper.log("Waiting for upload tool to complete", "info");
@@ -195,7 +195,6 @@ casper.test.begin("Interactive Environment Tests", 2, function suite(test_suite)
             casper.then(function(){
                 // http://f.q.d.n/galaxy/visualization/show/ipython?dataset_id=a7810ee58d3f4666
                 // Open, screenshot while loading
-                test_suite.assertUrlMatch(/dataset_id=/, "At correct URL?");
                 casper.thenOpen(ie_url, function(){
                     this.wait(1000, function(){
                         screenshot(this);
