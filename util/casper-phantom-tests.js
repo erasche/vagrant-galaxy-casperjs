@@ -149,7 +149,9 @@ casper.then(function(){
     var dataset_id = this.evaluate(function(){
         var element = $("#current-history-panel div.dataset");
         // hda-a7810ee58d3f4666
-        return element.attr('id').substring(4);
+        // Recently changed to
+        // dataset-7120d03ef1032efc
+        return element.attr('id').substring(8);
     });
     ie_url = "http://localhost/galaxy/visualization/show/" + viz_name + "?dataset_id=" + dataset_id;
     // http://f.q.d.n/galaxy/visualization/show/ipython?dataset_id=a7810ee58d3f4666
