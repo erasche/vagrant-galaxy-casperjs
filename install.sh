@@ -29,7 +29,7 @@ wget https://github.com/jmchilton/galaxy-downloads/blob/master/db_gx_rev_0120.sq
 sh manage_db.sh -c ./universe_wsgi.ini upgrade
 
 
-cp /vagrant/galaxy/* /home/vagrant/galaxy/
+cp /vagrant/conf/galaxy/* /home/vagrant/galaxy/
 
 # Create user
 python create_galaxy_user.py --user admin@local.host --password password
