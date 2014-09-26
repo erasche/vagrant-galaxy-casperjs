@@ -5,7 +5,11 @@ viz_plugin_repository: https://github.com/bgruening/galaxy-ipython
 conf:
     conf_file_location: "config/ipython.conf"
     test:
-        - main:
+        - dev_env:
              apache_urls: False
              password_auth: False
+             ssl: False
+        - dev_env_secured:
+             apache_urls: False
+             password_auth: True
              ssl: False

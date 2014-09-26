@@ -3,6 +3,7 @@ from subprocess import call
 import yaml
 import sys
 import os
+import subprocess
 
 with open(sys.argv[1], 'r') as handle:
     data = yaml.load(handle)
@@ -29,6 +30,8 @@ call(["git", "clone", viz_plugin, plugin_path])
 
 # Configure viz plugin
 conf_file = os.path.join(plugin_path, 'config', 'ipython.conf')
+if not os.path.exists("/vagrant/out/"):
+    os.makedirs("/vagrant/out/")
 
 for test_case in data['conf']['test']:
     with open(conf_file, 'w') as handle:
@@ -41,3 +44,7 @@ for test_case in data['conf']['test']:
         handle.write("[docker]\n")
         handle.write("command = docker.io\n")  # ubuntu specific
         handle.write("image = ie\n")
+    subprocess.check_call(["casperjs", "test",
+                           "/vagrant/util/casper-phantom-tests.js",
+                           "--xunit=/vagrant/out/" + test_case.keys()[0] +
+                           ".xml"])

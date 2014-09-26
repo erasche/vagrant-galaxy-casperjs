@@ -44,10 +44,6 @@ fi
 chown vagrant: -R /home/vagrant/
 
 
-### Installing IEs
-python /vagrant/util/install_ie.py /vagrant/ie.yaml
-
-
 # Static Files
 cp /vagrant/index.html /usr/share/nginx/html/index.html
 cp /vagrant/conf/nginx.conf /etc/nginx/sites-enabled/default
